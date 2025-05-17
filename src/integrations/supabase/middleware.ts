@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 export const updateSession = async (request: NextRequest) => {
-  // This `try/catch` block is only here for the interactive tutorial.
+  // This try/catch block is only here for the interactive tutorial.
   // Feel free to remove once you have Supabase connected.
   try {
     // Create an unmodified response
@@ -22,29 +22,37 @@ export const updateSession = async (request: NextRequest) => {
           },
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value }) =>
-              request.cookies.set(name, value),
+              request.cookies.set(name, value)
             );
             response = NextResponse.next({
               request,
             });
             cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options),
+              response.cookies.set(name, value, options)
             );
           },
         },
-      },
+      }
     );
 
     // This will refresh session if expired - required for Server Component
     // https://supabase.com/docs/guides/auth/server-side/nextjs
-    const user = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     // protected routes
-    if ( user.error) {
+    if (request.nextUrl.pathname.startsWith("/playground") && !user) {
       return NextResponse.redirect(new URL("/register", request.url));
     }
 
-    // if (request.nextUrl.pathname === "/" && !user.error) {
+    // admin routes protection
+    // If no user or not admin role, redirect to sign in or dashboard based on authentication state
+    // if (!user) {
+    //   return NextResponse.redirect(new URL("/register", request.url));
+    // }
+
+    // if (request.nextUrl.pathname === "/" && user) {
     //   return NextResponse.redirect(new URL("/", request.url));
     // }
 

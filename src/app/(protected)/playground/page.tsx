@@ -14,23 +14,13 @@ import {
   Loader2,
   Image as ImageIcon,
   Upload,
-  Settings,
-  ChevronRight,
-  ChevronLeft,
 } from "lucide-react";
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  CardFooter,
-  CardTitle,
-  CardDescription,
-} from "@/src/components/ui/card";
 import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { Slider } from "@/src/components/ui/slider";
 import Link from "next/link";
 import { signOutAction } from "@/src/lib/actions/auth";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/src/components/ui/label";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/src/components/ui/dropdown-menu";
 
 const IllustrationStyles = [
   { id: "notion", name: "Notion", icon: "👤" },
@@ -83,8 +73,7 @@ const Playground = () => {
     setIsGenerating(true);
     toast.success("Generating illustration...");
     try {
-      // const generatedImages = await generateImage(prompt, style, colorMode, outputCount);
-      const generatedImages = await fetch("/api/generate", {
+      const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -94,9 +83,12 @@ const Playground = () => {
           outputCount,
         }),
       });
-      console.log("Generated images:", generatedImages);
-
-      // setGeneratedResults(generatedImages);
+      const data = await response.json();
+      const results = (data.images || []).map((img: any, idx: number) => ({
+        provider: style,
+        imageUrl: `data:${img.mimeType};base64,${img.base64}`,
+      }));
+      setGeneratedResults(results);
       toast.success("Illustration generated successfully");
     } catch (error) {
       console.error("Error generating illustration:", error);
@@ -125,10 +117,51 @@ const Playground = () => {
     }
   };
 
+  // Helper function to download a data URL
+  function downloadDataUrl(dataUrl: string, filename: string) {
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // Helper function to convert SVG data URL to PNG and download
+  async function downloadSvgAsPng(svgUrl: string, filename: string) {
+    return new Promise<void>((resolve, reject) => {
+      const img = new window.Image();
+      img.crossOrigin = "anonymous";
+      img.onload = function () {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return reject("Canvas context not found");
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const url = URL.createObjectURL(blob);
+              downloadDataUrl(url, filename);
+              URL.revokeObjectURL(url);
+              resolve();
+            } else {
+              reject("Failed to create PNG blob");
+            }
+          },
+          "image/png"
+        );
+      };
+      img.onerror = reject;
+      img.src = svgUrl;
+    });
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
-      <header className="border-b border-gray-200 bg-white py-4 px-6 sticky flex items-center justify-between">
+      <header className="border-b border-gray-200 bg-white py-3 px-6 sticky flex items-center justify-between">
         <div className="flex items-center">
           <Link href="/">
             <IllustrationLogo small />
@@ -152,9 +185,9 @@ const Playground = () => {
       </header>
 
       <main className="flex-1 flex overflow-hidden">
-        <div className="w-2/5 h-screen overflow-y-auto">
+        <div className="w-2/5 overflow-y-auto">
           <ScrollArea className="h-[calc(100vh-4rem)]">
-            <div className="p-6 h-full flex flex-col">
+            <div className="p-3 h-full flex flex-col">
               <div className="flex-1 overflow-y-auto">
                 {/* Prompt Input */}
                 <div className="mb-6">
@@ -342,8 +375,8 @@ const Playground = () => {
           </ScrollArea>
         </div>
 
-        <div className="w-3/5 h-screen sticky top-0 overflow-y-auto bg-gray-50">
-          <div className="p-6">
+        <div className="w-3/5 sticky top-0 overflow-y-auto bg-gray-50">
+          <div className="p-6 h-full flex flex-col">
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-gray-800">
                 Generated Illustrations
@@ -353,7 +386,7 @@ const Playground = () => {
               </p>
             </div>
 
-            <div className="w-full">
+            <div className="w-full flex-1 overflow-y-auto">
               {isGenerating ? (
                 <div className="flex items-center justify-center p-12">
                   <div className="flex flex-col items-center">
@@ -380,47 +413,52 @@ const Playground = () => {
                   </p>
                 </div>
               ) : (
-                <div
-                  className={`grid ${
-                    outputCount === 1 ? "grid-cols-1" : "grid-cols-2"
-                  } gap-6`}
-                >
+                <div className={`grid ${outputCount === 1 ? "grid-cols-1" : "grid-cols-2"} gap-6 h-full min-h-0`}>
                   {generatedResults.map((result, index) => (
-                    <Card key={index} className="overflow-hidden">
-                      <CardHeader className="p-4">
-                        <CardTitle className="text-lg capitalize">
-                          {result.provider} Generated
-                        </CardTitle>
-                        <CardDescription className="line-clamp-1">
-                          {prompt}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="p-0">
-                        <div className="relative aspect-square w-full bg-gray-100">
-                          {result.imageUrl ? (
-                            <img
-                              src={result.imageUrl}
-                              alt={`AI generated illustration from ${result.provider}`}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <p className="text-gray-400">
-                                Failed to generate image
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                      <CardFooter className="flex justify-between p-4">
-                        <Button variant="outline" size="sm">
-                          Download
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          Use as Template
-                        </Button>
-                      </CardFooter>
-                    </Card>
+                    <div key={index} className="grid w-full place-items-center">
+                      <div className="relative w-full h-full flex items-center justify-center bg-white rounded-2xl border-2 border-dashed border-gray-200" style={{ width: 500, height: 500, marginBottom: 20 }}>
+                        {result.imageUrl ? (
+                          <img
+                            src={result.imageUrl}
+                            alt={`AI generated illustration from ${result.provider}`}
+                            className="object-contain rounded-2xl"
+                            style={{ width: 440, height: 440, background: 'white' }}
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <p className="text-gray-400">
+                              Failed to generate image
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      {/* <div className="rounded-full bg-white border border-gray-200 px-4 py-2 text-black text-center text-base font-medium max-w-full shadow-sm mb-2">
+                        {prompt || "Prompt not available"}
+                      </div> */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm" className="mb-2">Download</Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="center">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              // Download SVG directly
+                              downloadDataUrl(result.imageUrl, `illustration-${index + 1}.svg`);
+                            }}
+                          >
+                            Download as SVG
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={async () => {
+                              // Convert SVG to PNG and download
+                              await downloadSvgAsPng(result.imageUrl, `illustration-${index + 1}.png`);
+                            }}
+                          >
+                            Download as PNG
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   ))}
                 </div>
               )}

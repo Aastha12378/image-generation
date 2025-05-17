@@ -69,7 +69,6 @@ export async function verifyOtp(formData: FormData) {
   });
   if (error) {
     console.log(error.code + "------------------------- " + error.message);
-    throw new Error(error.message);
   }
 }
 

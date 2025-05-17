@@ -13,7 +13,7 @@ import { redirect, useRouter, useSearchParams } from "next/navigation";
 import { verifyOtp } from "@/src/lib/actions/auth";
 import { z } from "zod";
 import { Button } from "@/src/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/src/components/ui/label";
 
 const otpSchema = z.object({
     otp: z.array(z.string().length(1).regex(/^\d$/)).length(6),

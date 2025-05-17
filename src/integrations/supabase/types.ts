@@ -38,30 +38,87 @@ export type Database = {
       }
       users: {
         Row: {
-          avatar_url: string | null
-          created_at: string
-          full_name: string | null
-          id: string
-          updated_at: string,
+          id: string // UUID
           email: string
+          avatar_url: string | null
+          first_name: string | null
+          last_name: string | null
+          dodo_customer_id: string | null
+          remaining_credits: number | null
+          created_at: string
+          updated_at: string
+          saved_templates: string[] | null // UUID[]
+          stripe_customer_id: string | null
+          billing_data: Json | null
+          full_name?: string | null // deprecated, kept for backward compatibility
         }
         Insert: {
-          avatar_url?: string | null
-          created_at?: string
-          full_name?: string | null
-          id: string
-          updated_at?: string,
+          id: string // UUID
           email: string
+          avatar_url?: string | null
+          first_name?: string | null
+          last_name?: string | null
+          dodo_customer_id?: string | null
+          remaining_credits?: number | null
+          created_at?: string
+          updated_at?: string
+          saved_templates?: string[] | null
+          stripe_customer_id?: string | null
+          billing_data?: Json | null
+          full_name?: string | null // deprecated
         }
         Update: {
-          avatar_url?: string | null
-          created_at?: string
-          full_name?: string | null
-          id?: string
-          updated_at?: string,
+          id?: string // UUID
           email?: string
+          avatar_url?: string | null
+          first_name?: string | null
+          last_name?: string | null
+          dodo_customer_id?: string | null
+          remaining_credits?: number | null
+          created_at?: string
+          updated_at?: string
+          saved_templates?: string[] | null
+          stripe_customer_id?: string | null
+          billing_data?: Json | null
+          full_name?: string | null // deprecated
         }
         Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          id: string;
+          name: string;
+          price: number;
+          token_limit: number;
+          dodo_product_id: string;
+          is_active: boolean;
+          is_popular: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          price: number;
+          token_limit: number;
+          dodo_product_id: string;
+          is_active?: boolean;
+          is_popular?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          price?: number;
+          token_limit?: number;
+          dodo_product_id?: string;
+          is_active?: boolean;
+          is_popular?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
       }
     }
     Views: {
@@ -90,7 +147,7 @@ export type Tables<
   }
     ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never,
 > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
   ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
       Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {

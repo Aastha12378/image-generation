@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/src/components/ui/button";
 import { Textarea } from "@/src/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/src/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/src/components/ui/tabs";
 import { Card, CardContent } from "@/src/components/ui/card";
 import { ScrollArea } from "@/src/components/ui/scroll-area";

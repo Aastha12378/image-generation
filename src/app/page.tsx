@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import IllustrationLogo from "../components/IllustrationLogo";
 import { createClient } from "../integrations/supabase/server";
+import PricingPlans from "./(protected)/payment/page";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -107,6 +108,17 @@ export default async function Home() {
                 </p>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* Pricing Section */}
+        <section className="py-16">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center mb-8">Pricing Plans</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto text-center mb-12">
+              Choose a plan that fits your needs. Start for free, upgrade anytime.
+            </p>
+            <PricingPlans />
           </div>
         </section>
 

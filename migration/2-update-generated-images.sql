@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS generated_images (
 
 -- Create storage bucket for generated images
 INSERT INTO storage.buckets (id, name, public) 
-VALUES ('generated_images', 'generated_images', true)
+VALUES ('generated-images', 'generated-images', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- Enable Row Level Security (RLS)
@@ -50,16 +50,10 @@ USING (bucket_id = 'generated-images');
 CREATE POLICY "Users can upload generated images"
 ON storage.objects FOR INSERT
 WITH CHECK (
-  bucket_id = 'generated_images' AND
+  bucket_id = 'generated-images' AND
   auth.uid() IS NOT NULL
 );
 
-CREATE POLICY "Users can delete their own generated images from storage"
-ON storage.objects FOR DELETE
-USING (
-  bucket_id = 'generated_images' AND
-  auth.uid() = (SELECT user_id FROM generated_images WHERE image_url = name)
-);
 
 -- Create useful indexes
 CREATE INDEX IF NOT EXISTS idx_generated_images_storage_path ON generated_images(storage_path);

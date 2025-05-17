@@ -24,7 +24,7 @@ export function GridMotion({
 }: GridMotionProps) {
   const gridRef = useRef<HTMLDivElement>(null)
   const rowRefs = useRef<(HTMLDivElement | null)[]>([])
-  const mouseXRef = useRef(window.innerWidth / 2)
+  const mouseXRef = useRef(typeof window !== "undefined" ? window.innerWidth / 2 : 0)
 
   const totalItems = 28
   const defaultItems = Array.from({ length: totalItems }, (_, index) => `Item ${index + 1}`)

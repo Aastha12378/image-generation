@@ -3,7 +3,7 @@ import { Input } from "@/src/components/ui/input";
 import IllustrationLogo from "@/src/components/IllustrationLogo";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/src/components/ui/label";
 import { supabase } from "@/src/integrations/supabase/client"; // Import Supabase client
 import { Button } from "@/src/components/ui/button";
 import { GridMotion } from "@/src/components/GridMotion";

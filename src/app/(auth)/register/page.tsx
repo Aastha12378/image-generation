@@ -11,7 +11,7 @@ import { Button } from "@/src/components/ui/button";
 import { GridMotion } from "@/src/components/GridMotion";
 import Image from "next/image";
 import { Input } from "@/src/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/src/components/ui/label";
 
 const signUpSchema = z.object({
   email: z

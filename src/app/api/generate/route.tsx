@@ -1,15 +1,16 @@
 import { experimental_generateImage } from "ai";
-import { createReplicate, replicate } from "@ai-sdk/replicate";
+import { createReplicate } from "@ai-sdk/replicate";
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { createClient } from "@/src/integrations/supabase/server";
+import { supabaseAdmin } from "@/src/integrations/supabase/admin";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { prompt, style, colorMode, outputCount, referenceImage } = body;
 
-    let replicate = createReplicate({
+    const replicate = createReplicate({
       apiToken: process.env.REPLICATE_API_TOKEN ?? "",
     });
 
@@ -25,6 +26,7 @@ export async function POST(req: NextRequest) {
     const imageIds: string[] = [];
 
     for (let i = 0; i < outputCount; i++) {
+      // Generate image using Replicate
       const { image } = await experimental_generateImage({
         model: replicate.image("black-forest-labs/flux-schnell"),
         prompt: referenceImage
@@ -33,9 +35,8 @@ export async function POST(req: NextRequest) {
         size: "1365x1024",
       });
 
-      console.log("Generated image:", image);
-
-      const base64Image = Buffer.from(image.uint8Array).toString("base64");
+      // Use image.base64 for storage and response
+      const base64Image = image.base64;
       const imageId = uuidv4();
 
       const supabase = await createClient();
@@ -48,33 +49,33 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
 
-      // Store the image in Supabase Storage
-      const { data: storageData, error: storageError } = await supabase.storage
-        .from("generated-images")
-        .upload(`${imageId}.svg`, Buffer.from(base64Image, "base64"), {
-          contentType: "image/svg+xml",
-          upsert: true,
-        });
-      console.log({ storageError, storageData });
+      // Store the image in Supabase Storage using supabaseAdmin
+      const { data: storageData, error: storageError } =
+        await supabaseAdmin.storage
+          .from("generated-images")
+          .upload(`${imageId}.svg`, Buffer.from(base64Image, "base64"), {
+            contentType: "image/svg+xml",
+            upsert: true,
+          });
       if (storageError) {
         throw storageError;
       }
 
       // Store the image metadata in Supabase Database
-      const { data: dbData, error: dbError } = await supabase
+      const { data: dbData, error: dbError } = await supabaseAdmin
         .from("generated_images")
         .insert({
+          id: imageId,
           prompt,
           style,
           color_mode: colorMode,
           storage_path: storageData.path,
+          image_url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/generated-images/${storageData.path}`,
           created_at: new Date().toISOString(),
-          reference_image: referenceImage ? storageData.path : null,
           user_id: user.id,
         })
         .select()
         .single();
-      console.log({ dbError, dbData });
       if (dbError) {
         throw dbError;
       }
@@ -85,13 +86,11 @@ export async function POST(req: NextRequest) {
         mimeType: "image/svg",
       });
     }
-
-    return { images: imageDataList, imageIds };
+    return NextResponse.json({ images: imageDataList, ids: imageIds });
   } catch (error: any) {
     console.error("Image generation failed:", error);
-    return NextResponse.json(
-      { error: error?.message || "An unexpected error occurred" },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      error: error?.message || "An unexpected error occurred",
+    });
   }
 }

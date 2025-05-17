@@ -1,13 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Button } from "@/src/components/ui/button";
-import { Input } from "@/src/components/ui/input";
 import IllustrationLogo from "@/src/components/IllustrationLogo";
-import { supabase } from "@/src/integrations/supabase/client";
 import { toast } from "sonner";
 import Link from "next/link";
 import { signOutAction, getUser } from "@/src/lib/actions/auth";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/src/integrations/supabase/server";
 
 interface Profile {
   id: string;
@@ -27,28 +26,15 @@ const Profile = () => {
     const fetchUserAndProfile = async () => {
       setLoading(true);
       try {
-        const { data: session } = await supabase.auth.getUser();
-        console.log("session", session);
+        const supabase = await createClient();
 
         const {
-          data: { user },
-          error: userError,
+          data: { user: any },
         } = await supabase.auth.getUser();
 
-        console.log("user", user, userError);
-        // if (!user) router.push("/login");
-
-        const { data, error } = await supabase
-          .from("users")
-          .select("*")
-          .eq("id", user?.id)
-          .single();
-
-        if (error) throw error;
-
-        if (data) {
-          setProfile(data);
-          setFullName(data.email || "");
+        if (user) {
+          setProfile(user);
+          setFullName(user.email || "");
         }
       } catch (error: any) {
         console.error("Error fetching user or profile:", error);
@@ -61,29 +47,29 @@ const Profile = () => {
     fetchUserAndProfile();
   }, []);
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
+  // const handleUpdateProfile = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!user) return;
 
-    setLoading(true);
-    try {
-      const { error } = await supabase
-        .from("users")
-        .update({
-          full_name: fullName,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user.id);
+  //   setLoading(true);
+  //   try {
+  //     const { error } = await supabase
+  //       .from("users")
+  //       .update({
+  //         full_name: fullName,
+  //         updated_at: new Date().toISOString(),
+  //       })
+  //       .eq("id", user.id);
 
-      if (error) throw error;
-      toast.success("Profile updated successfully");
-    } catch (error: any) {
-      console.error("Error updating profile:", error);
-      toast.error("Error updating profile");
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     if (error) throw error;
+  //     toast.success("Profile updated successfully");
+  //   } catch (error: any) {
+  //     console.error("Error updating profile:", error);
+  //     toast.error("Error updating profile");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <div className="flex min-h-screen flex-col bg-illustration-background">
@@ -146,7 +132,7 @@ const Profile = () => {
               </div>
             </div>
 
-            <form onSubmit={handleUpdateProfile} className="space-y-6">
+            {/* <form onSubmit={handleUpdateProfile} className="space-y-6">
               <div>
                 <label
                   htmlFor="fullName"
@@ -186,7 +172,7 @@ const Profile = () => {
                   {loading ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
-            </form>
+            </form> */}
           </div>
         </div>
       </main>
