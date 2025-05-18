@@ -1,5 +1,6 @@
-// components/IllustrationLogo.tsx
+'use client'
 import { cn } from "@/src/lib/utils";
+import { useRouter } from "next/navigation";
 
 interface IllustrationLogoProps {
   small?: boolean;
@@ -7,8 +8,15 @@ interface IllustrationLogoProps {
 }
 
 const IllustrationLogo = ({ small = false, className }: IllustrationLogoProps) => {
+  const router = useRouter();
   return (
-    <div className={cn("flex items-center", className)}>
+    <div
+      className={cn("flex items-center cursor-pointer", className)}
+      onClick={() => router.push("/")}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => { if (e.key === "Enter" || e.key === " ") router.push("/"); }}
+    >
       <div className="flex items-center justify-center bg-illustration-accent rounded-md p-1">
         <svg
           xmlns="http://www.w3.org/2000/svg"

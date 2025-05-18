@@ -139,6 +139,12 @@ export async function getUser() {
       error,
     } = await supabase.auth.getUser();
 
+    const { data: userData } = await supabase
+        .from("users")
+        .select("remaining_credits")
+        .eq("id", user?.id)
+        .single();
+
     if (error) {
       console.error("Error fetching user:", error.message);
       return {
@@ -156,10 +162,10 @@ export async function getUser() {
       };
     }
 
-    console.log("User data:", user);
     return {
       success: true,
       data: user,
+      userData: userData,
     };
   } catch (err: any) {
     console.error("An unexpected error occurred in getUser:", err);

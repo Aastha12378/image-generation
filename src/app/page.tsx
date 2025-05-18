@@ -1,5 +1,4 @@
 import { Button } from "@/src/components/ui/button";
-import Image from "next/image";
 import Link from "next/link";
 import IllustrationLogo from "../components/IllustrationLogo";
 import { createClient } from "../integrations/supabase/server";
@@ -118,7 +117,7 @@ export default async function Home() {
             <p className="text-lg text-gray-600 max-w-2xl mx-auto text-center mb-12">
               Choose a plan that fits your needs. Start for free, upgrade anytime.
             </p>
-            <PricingPlans />
+            <PricingPlans hideHeader={true} />
           </div>
         </section>
 
@@ -131,7 +130,7 @@ export default async function Home() {
               use Illustration.app daily.
             </p>
             <Button size="lg" asChild>
-              <Link href="/register">Create your first illustration</Link>
+              <Link href="/playground">Create your first illustration</Link>
             </Button>
           </div>
         </section>

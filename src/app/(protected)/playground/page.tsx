@@ -10,17 +10,20 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/src/components/ui/tabs";
-import {
-  Loader2,
-  Image as ImageIcon,
-  Upload,
-} from "lucide-react";
+import { Loader2, Image as ImageIcon, Upload, Zap } from "lucide-react";
 import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { Slider } from "@/src/components/ui/slider";
 import Link from "next/link";
 import { signOutAction } from "@/src/lib/actions/auth";
 import { Label } from "@/src/components/ui/label";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/src/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/src/components/ui/dropdown-menu";
+import { useRouter } from "next/navigation";
+import { getUser } from "@/src/lib/actions/auth";
 
 const IllustrationStyles = [
   { id: "notion", name: "Notion", icon: "👤" },
@@ -41,10 +44,9 @@ const Playground = () => {
   const [referenceImage, setReferenceImage] = useState<File | null>(null);
   const [referenceImageUrl, setReferenceImageUrl] = useState<string>("");
   const [templates, setTemplates] = useState<Array<any>>([]);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
-
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [remainingCredits, setRemainingCredits] = useState<number>(0);
 
   // Check if the form is valid for generation
   const isFormValid = !!prompt.trim();
@@ -64,9 +66,28 @@ const Playground = () => {
     fetchTemplates();
   }, []);
 
+  useEffect(() => {
+    const fetchUserCredits = async () => {
+      const response = await getUser();
+      setRemainingCredits(response.userData?.remaining_credits || 0);
+    };
+    fetchUserCredits();
+  }, []);
+
   const handleGenerateClick = async () => {
     if (!isFormValid) {
       toast.error("Please enter a prompt");
+      return;
+    }
+
+    if (remainingCredits <= 0) {
+      toast.error("You have no credits remaining. Please purchase more credits to continue.", {
+        duration: 10000,
+        action: {
+          label: "Purchase Credits",
+          onClick: () => router.push("/payment")
+        }
+      });
       return;
     }
 
@@ -90,6 +111,10 @@ const Playground = () => {
       }));
       setGeneratedResults(results);
       toast.success("Illustration generated successfully");
+      
+      // Update remaining credits after successful generation
+      const updatedResponse = await getUser();
+      setRemainingCredits(updatedResponse.userData?.remaining_credits || 0);
     } catch (error) {
       console.error("Error generating illustration:", error);
       toast.error("Error generating illustration");
@@ -139,19 +164,16 @@ const Playground = () => {
         const ctx = canvas.getContext("2d");
         if (!ctx) return reject("Canvas context not found");
         ctx.drawImage(img, 0, 0);
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              const url = URL.createObjectURL(blob);
-              downloadDataUrl(url, filename);
-              URL.revokeObjectURL(url);
-              resolve();
-            } else {
-              reject("Failed to create PNG blob");
-            }
-          },
-          "image/png"
-        );
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            downloadDataUrl(url, filename);
+            URL.revokeObjectURL(url);
+            resolve();
+          } else {
+            reject("Failed to create PNG blob");
+          }
+        }, "image/png");
       };
       img.onerror = reject;
       img.src = svgUrl;
@@ -175,10 +197,22 @@ const Playground = () => {
             <Link href="/playground">Playground</Link>
           </Button>
           <div className="border-r border-gray-200 h-6"></div>
+          <div className="flex items-center space-x-2 border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl shadow-sm">
+            <Zap className="h-4 w-4 text-yellow-500" />
+            <span className="text-sm font-medium text-gray-600">Credits:</span>
+            <span className="text-base font-semibold text-gray-900">{remainingCredits}</span>
+          </div>
           <Button variant="ghost" size="sm" asChild>
             <Link href="/profile">Profile</Link>
           </Button>
-          <Button variant="outline" size="sm" onClick={() => signOutAction()}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              signOutAction();
+              router.push("/login");
+            }}
+          >
             Sign Out
           </Button>
         </div>
@@ -353,6 +387,7 @@ const Playground = () => {
                   </Tabs>
                 </div>
 
+
                 {/* Generate Button */}
                 <div className="mt-4">
                   <Button
@@ -413,16 +448,27 @@ const Playground = () => {
                   </p>
                 </div>
               ) : (
-                <div className={`grid ${outputCount === 1 ? "grid-cols-1" : "grid-cols-2"} gap-6 h-full min-h-0`}>
+                <div
+                  className={`grid ${
+                    outputCount === 1 ? "grid-cols-1" : "grid-cols-2"
+                  } gap-6 h-full min-h-0`}
+                >
                   {generatedResults.map((result, index) => (
                     <div key={index} className="grid w-full place-items-center">
-                      <div className="relative w-full h-full flex items-center justify-center bg-white rounded-2xl border-2 border-dashed border-gray-200" style={{ width: 500, height: 500, marginBottom: 20 }}>
+                      <div
+                        className="relative w-full h-full flex items-center justify-center bg-white rounded-2xl border-2 border-dashed border-gray-200"
+                        style={{ width: 500, height: 500, marginBottom: 20 }}
+                      >
                         {result.imageUrl ? (
                           <img
                             src={result.imageUrl}
                             alt={`AI generated illustration from ${result.provider}`}
                             className="object-contain rounded-2xl"
-                            style={{ width: 440, height: 440, background: 'white' }}
+                            style={{
+                              width: 440,
+                              height: 440,
+                              background: "white",
+                            }}
                           />
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center">
@@ -437,13 +483,18 @@ const Playground = () => {
                       </div> */}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm" className="mb-2">Download</Button>
+                          <Button variant="outline" size="sm" className="mb-2">
+                            Download
+                          </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="center">
                           <DropdownMenuItem
                             onClick={() => {
                               // Download SVG directly
-                              downloadDataUrl(result.imageUrl, `illustration-${index + 1}.svg`);
+                              downloadDataUrl(
+                                result.imageUrl,
+                                `illustration-${index + 1}.svg`
+                              );
                             }}
                           >
                             Download as SVG
@@ -451,7 +502,10 @@ const Playground = () => {
                           <DropdownMenuItem
                             onClick={async () => {
                               // Convert SVG to PNG and download
-                              await downloadSvgAsPng(result.imageUrl, `illustration-${index + 1}.png`);
+                              await downloadSvgAsPng(
+                                result.imageUrl,
+                                `illustration-${index + 1}.png`
+                              );
                             }}
                           >
                             Download as PNG

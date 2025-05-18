@@ -1,14 +1,12 @@
-import { supabase } from "@/src/integrations/supabase/client";
 import { createClient } from "@/src/integrations/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 import DodoPayments from "dodopayments";
 import { BillingAddress } from "dodopayments/resources";
 
-const client = new DodoPayments({
-  bearerToken:
-    "sSnVstQzIzBDMwiu.3ensbBsA5OdA73_KvkwXI3QUSQc_cPC7cgKMOzxamk_ll6Gu",
-  environment: "test_mode", // as "live_mode" | "test_mode"
+export const client = new DodoPayments({
+  bearerToken: process.env.DODO_API_KEY_TEST!,
+  environment: process.env.DODO_ENVIRONMENT as "live_mode" | "test_mode",
 });
 
 export async function POST(req: NextRequest) {
@@ -77,8 +75,8 @@ export async function POST(req: NextRequest) {
       throw new Error("Plan not found");
     }
 
-    let dodoCustomerId = await ensureCustomer(userData);
-  
+    const dodoCustomerId = await ensureCustomer(userData);
+
     const subscription = await getPaymentLink(
       billingData,
       dodoCustomerId,
@@ -97,6 +95,7 @@ export async function POST(req: NextRequest) {
       data: { paymentLink: subscription.payment_link },
     });
   } catch (error) {
+    console.error("Error in billing details route:", error);
     return NextResponse.json(
       { error: "Failed to save billing details" },
       { status: 500 }
@@ -147,7 +146,7 @@ export async function getPaymentLink(
     customer: { customer_id: customer_id },
     product_cart: [{ product_id: productId, quantity: tokens }],
     payment_link: true,
-    return_url: `${process.env.FRONTEND_URL}/pricing`,
+    return_url: `${process.env.FRONTEND_URL}/payment`,
     metadata,
   });
   return payment;

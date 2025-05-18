@@ -7,8 +7,30 @@ import { supabaseAdmin } from "@/src/integrations/supabase/admin";
 
 export async function POST(req: NextRequest) {
   try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await req.json();
     const { prompt, style, colorMode, outputCount, referenceImage } = body;
+
+    // Get user's current credits
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('remaining_credits')
+      .eq('id', user.id)
+      .single();
+
+    if (userError) {
+      return NextResponse.json({ error: 'Failed to fetch user data' }, { status: 500 });
+    }
+
+    if (!userData || userData.remaining_credits <= 0) {
+      return NextResponse.json({ error: 'Insufficient credits' }, { status: 400 });
+    }
 
     const replicate = createReplicate({
       apiToken: process.env.REPLICATE_API_TOKEN ?? "",
@@ -39,24 +61,24 @@ export async function POST(req: NextRequest) {
       const base64Image = image.base64;
       const imageId = uuidv4();
 
-      const supabase = await createClient();
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+      // If image.base64 is a base64-encoded SVG string, decode it before upload
+      const base64Data = base64Image.replace(/^data:image\/webp;base64,/, "");
 
-      if (userError || !user) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const svgBuffer = Buffer.from(base64Data, "base64");
+      const svgString = svgBuffer.toString("utf-8");
+      if (!svgString.startsWith("<svg")) {
+        console.log("Invalid SVG data");
       }
 
-      // Store the image in Supabase Storage using supabaseAdmin
+      // Upload SVG buffer to Supabase Storage
       const { data: storageData, error: storageError } =
         await supabaseAdmin.storage
           .from("generated-images")
-          .upload(`${imageId}.svg`, Buffer.from(base64Image, "base64"), {
+          .upload(`${imageId}.svg`, svgBuffer, {
             contentType: "image/svg+xml",
             upsert: true,
           });
+
       if (storageError) {
         throw storageError;
       }
@@ -86,6 +108,17 @@ export async function POST(req: NextRequest) {
         mimeType: "image/svg",
       });
     }
+
+    // Update user's credits after successful generation
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ remaining_credits: userData.remaining_credits - outputCount })
+      .eq('id', user.id);
+
+    if (updateError) {
+      return NextResponse.json({ error: 'Failed to update credits' }, { status: 500 });
+    }
+
     return NextResponse.json({ images: imageDataList, ids: imageIds });
   } catch (error: any) {
     console.error("Image generation failed:", error);

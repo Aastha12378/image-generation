@@ -148,7 +148,7 @@ const Register = () => {
             "images/ai-gen.svg",
             "Item 5",
             <div key="jsx-item-2">Custom JSX Content</div>,
-            <Image src={"images/ai-gen.svg"} width={50} height={50} alt="ai" />,
+            <Image key={1} src={"images/ai-gen.svg"} width={50} height={50} alt="ai" />,
             <div key="jsx-item-2">Custom JSX Content</div>,
             "images/ai-gen.svg",
             "Item 8",

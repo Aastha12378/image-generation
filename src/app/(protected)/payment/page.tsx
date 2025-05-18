@@ -3,10 +3,13 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/src/integrations/supabase/client";
 import type { Database } from "@/src/integrations/supabase/types";
-import { Check } from "lucide-react";
+import { Check, Zap } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { cn } from "@/src/lib/utils";
 import BillingDetailsDialog from "./BillingDetailsDialog";
+import IllustrationLogo from "@/src/components/IllustrationLogo";
+import { getUser } from "@/src/lib/actions/auth";
+import { useRouter } from "next/navigation";
 
 export interface Feature {
   name: string;
@@ -34,56 +37,56 @@ const PricingCard = ({ tier, billingPeriod, disabled }: PricingCardProps) => {
   const price =
     billingPeriod === "monthly" ? tier.monthlyPrice : tier.yearlyPrice;
   const originalPrice = billingPeriod === "yearly" ? tier.monthlyPrice : null;
+
   return (
     <div
       className={cn(
-        "rounded-2xl border p-6 shadow-sm transition-all hover:shadow-md",
-        tier.popular ? "border-primary ring-2 ring-primary ring-opacity-60" : ""
+        "relative group rounded-2xl border border-gray-200 p-6 transition-all hover:shadow-lg hover:-translate-y-1 bg-white",
+        tier.popular && "border-primary ring-2 ring-primary/30"
       )}
     >
       {tier.popular && (
-        <div className="absolute -top-5 left-0 right-0 mx-auto w-32 rounded-full bg-primary py-1 text-center text-xs font-semibold text-primary-foreground">
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-fit px-4 py-1 rounded-full bg-gradient-to-r from-primary to-purple-600 text-white text-xs font-semibold shadow-sm">
           Most Popular
         </div>
       )}
 
-      <div className="relative">
-        <h3 className="text-xl font-semibold">{tier.name}</h3>
+      <div>
+        <h3 className="text-xl font-semibold text-gray-900">{tier.name}</h3>
         {tier.description && (
-          <p className="mt-2 text-sm text-muted-foreground">
-            {tier.description}
-          </p>
+          <p className="mt-1 text-sm text-gray-500">{tier.description}</p>
         )}
 
         <div className="mt-4">
           <div className="flex items-baseline">
-            <span className="text-4xl font-bold">${price}</span>
+            <span className="text-4xl font-bold text-gray-900">${price}</span>
             {originalPrice && (
-              <span className="ml-2 text-lg text-muted-foreground line-through">
+              <span className="ml-2 text-lg text-gray-400 line-through">
                 ${originalPrice}
               </span>
             )}
-            <span className="ml-1 text-sm text-muted-foreground">/month</span>
+            <span className="ml-1 text-sm text-gray-500">/month</span>
           </div>
           {billingPeriod === "yearly" && (
-            <p className="text-xs text-muted-foreground mt-1">
-              Billed annually
-            </p>
+            <p className="text-xs text-gray-400 mt-1">Billed annually</p>
           )}
         </div>
 
-        <ul className="mt-6 space-y-3">
+        <ul className="mt-6 space-y-3 text-left">
           {tier.features.map((feature) => (
-            <li key={feature.name} className="flex items-start">
-              <Check className="mr-2 h-5 w-5 flex-shrink-0 text-primary" />
-              <span className="text-sm">{feature.name}</span>
+            <li
+              key={feature.name}
+              className="flex items-start text-sm text-gray-700"
+            >
+              <Check className="mr-2 h-4 w-4 flex-shrink-0 text-primary" />
+              {feature.name}
             </li>
           ))}
         </ul>
 
         <Button
           onClick={tier.onSelect}
-          className={cn("mt-8 w-full", tier.popular ? "bg-primary" : "")}
+          className={cn("mt-8 w-full", tier.popular && "bg-primary text-white")}
           variant={tier.buttonVariant || "default"}
           disabled={disabled}
         >
@@ -94,13 +97,28 @@ const PricingCard = ({ tier, billingPeriod, disabled }: PricingCardProps) => {
   );
 };
 
-const PricingPlans = () => {
+interface BillingData {
+  city: string;
+  state: string;
+  street: string;
+  country: string;
+  zipcode: string;
+}
+
+interface PricingPlansProps {
+  hideHeader?: boolean;
+}
+
+const PricingPlans = ({ hideHeader = false }: PricingPlansProps) => {
   const [plans, setPlans] = useState<
     Database["public"]["Tables"]["subscription_plans"]["Row"][]
   >([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [billingData, setBillingData] = useState<BillingData | null>(null);
+  const [userCredits, setUserCredits] = useState<number | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -116,53 +134,62 @@ const PricingPlans = () => {
       }
       setLoading(false);
     };
+
+    const fetchUserCredits = async () => {
+      const response = await getUser();
+      setUserCredits(response.userData?.remaining_credits || 0);
+    };
+
+    fetchUserCredits();
     fetchPlans();
   }, []);
 
+  useEffect(() => {
+    const checkPaymentStatus = async () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const status = searchParams.get("status");
+
+      if (status) {
+        if (status === "succeeded") {
+          toast.success("Payment successful!");
+        } else if (status === "failed") {
+          toast.error("Payment failed. Please try again.");
+        }
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      checkPaymentStatus();
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [router]);
+
   const handlePlanSelection = async (planName: string) => {
-    // Get current user
-    // const {
-    //   data: { user },
-    //   error: userError,
-    // } = await supabase.auth.getUser();
-    // console.log(user, userError);
+    try {
+      // Fetch user data from API
+      const response = await fetch("/api/user");
 
-    // if (userError || !user) {
-    //   toast.error("User not authenticated");
-    //   return;
-    // }
-    // // Fetch user data from 'users' table
-    // const { data: userData, error: userDataError } = await supabase
-    //   .from("users")
-    //   .select("billing_data")
-    //   .eq("id", user.id)
-    //   .single();
+      const data = await response.json();
+      if (!response.ok) {
+        toast.error(data.error || "Please sign in to continue");
+        return;
+      }
 
-    // if (userDataError || !userData) {
-    //   toast.error("Failed to fetch user data");
-    //   return;
-    // }
-    // if (userData?.billing_data) {
-    //   // If billing_data exists, call billing-details API
-    //   const response = await fetch("/api/billing-details", {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify({
-    //       billingData: userData.billing_data,
-    //       planId: planName,
-    //     }),
-    //   });
-    //   const result = await response.json();
-    //   if (result.success && result.data?.paymentLink) {
-    //     window.location.href = result.data.paymentLink;
-    //     return;
-    //   } else {
-    //     toast.error(result.error || "Failed to process billing details.");
-    //   }
-    // } else {
+      const { user, billingData } = data;
+
+      if (!user) {
+        toast.error("Please sign in to continue");
+        return;
+      }
+
       setSelectedPlan(planName);
+      setBillingData(billingData);
       setDialogOpen(true);
-    // }
+    } catch (error) {
+      console.error("Error in handlePlanSelection:", error);
+      toast.error("Something went wrong");
+    }
   };
 
   const handleDialogClose = () => {
@@ -173,36 +200,59 @@ const PricingPlans = () => {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div className="px-4 py-12">
-      <div className="max-w-5xl mx-auto text-center">
-        <div className="grid md:grid-cols-3 gap-8 mt-8">
-          {plans.map((plan) => (
-            <div key={plan.id} className="relative">
-              <PricingCard
-                tier={{
-                  name: plan.name,
-                  monthlyPrice: plan.price / 100,
-                  yearlyPrice: plan.price / 100, // No yearly, just show price
-                  features: [
-                    { name: `${plan.token_limit} credits` },
-                    { name: `Product ID: ${plan.dodo_product_id}` },
-                  ],
-                  buttonText: plan.is_active ? "Choose" : "Unavailable",
-                  buttonVariant: plan.is_popular ? "default" : "outline",
-                  popular: plan.is_popular,
-                  onSelect: () => handlePlanSelection(plan.id),
-                }}
-                billingPeriod={"monthly"}
-                disabled={!plan.is_active}
-              />
+    <div className="min-h-screen flex flex-col">
+      {!hideHeader && (
+        <header className="border-b border-gray-200 bg-white">
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <IllustrationLogo />
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-2 border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl shadow-sm">
+                <Zap className="h-4 w-4 text-yellow-500" />
+                <span className="text-sm font-medium text-gray-600">
+                  Credits:
+                </span>
+                <span className="text-base font-semibold text-gray-900">
+                  {userCredits}
+                </span>
+              </div>
             </div>
-          ))}
+          </div>
+        </header>
+      )}
+
+      <div className="flex-1 px-4 py-12">
+        <div className="max-w-5xl mx-auto text-center">
+          <h1 className="text-3xl font-bold mb-8">Choose Your Plan</h1>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-8">
+            {plans.map((plan) => (
+              <div key={plan.id} className="relative">
+                <PricingCard
+                  tier={{
+                    name: plan.name,
+                    monthlyPrice: plan.price / 100,
+                    yearlyPrice: plan.price / 100,
+                    features: [
+                      { name: `${plan.token_limit} credits` },
+                      { name: `Product ID: ${plan.dodo_product_id}` },
+                    ],
+                    buttonText: plan.is_active ? "Choose" : "Unavailable",
+                    buttonVariant: plan.is_popular ? "default" : "outline",
+                    popular: plan.is_popular,
+                    onSelect: () => handlePlanSelection(plan.id),
+                  }}
+                  billingPeriod={"monthly"}
+                  disabled={!plan.is_active}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
       <BillingDetailsDialog
         open={dialogOpen}
         onClose={handleDialogClose}
         planId={selectedPlan}
+        existingBillingData={billingData}
       />
     </div>
   );

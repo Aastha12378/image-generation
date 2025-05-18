@@ -40,7 +40,14 @@ type FormValues = z.infer<typeof formSchema>;
 interface BillingDetailsDialogProps {
   open: boolean;
   onClose: () => void;
-  planId?: string | null; // Add planId prop
+  planId?: string | null;
+  existingBillingData?: {
+    street: string;
+    city: string;
+    state: string;
+    country: string;
+    zipcode: string;
+  } | null;
 }
 
 const getCountriesMap = () => {
@@ -63,12 +70,13 @@ export default function BillingDetailsDialog({
   open,
   onClose,
   planId,
+  existingBillingData,
 }: BillingDetailsDialogProps) {
   const countriesList = getCountriesMap();
   const [loading, setLoading] = React.useState(false);
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: existingBillingData || {
       street: "",
       city: "",
       state: "",
@@ -103,10 +111,10 @@ export default function BillingDetailsDialog({
   };
 
   React.useEffect(() => {
-    if (!open) {
-      form.reset();
+    if (existingBillingData) {
+      form.reset(existingBillingData);
     }
-  }, [open, form]);
+  }, [existingBillingData, form]);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>

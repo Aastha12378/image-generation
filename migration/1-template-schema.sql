@@ -9,7 +9,7 @@
     first_name TEXT,
     last_name TEXT,
     dodo_customer_id VARCHAR(255),
-    remaining_credits INTEGER DEFAULT 10,
+    remaining_credits INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT now() NOT NULL,
     saved_templates UUID[] DEFAULT '{}'::UUID[],
