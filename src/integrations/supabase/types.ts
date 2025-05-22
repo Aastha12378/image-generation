@@ -120,6 +120,52 @@ export type Database = {
         };
         Relationships: [];
       }
+      transactions: {
+        Row: {
+          id: string
+          user_id: string
+          amount: number
+          tax: number
+          currency: string
+          status: 'pending' | 'processing' | 'succeeded' | 'failed' | 'refunded'
+          dodo_payment_id: string | null
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          amount: number
+          tax: number
+          currency?: string
+          status: 'pending' | 'processing' | 'succeeded' | 'failed' | 'refunded'
+          dodo_payment_id?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          amount?: number
+          tax?: number
+          currency?: string
+          status?: 'pending' | 'processing' | 'succeeded' | 'failed' | 'refunded'
+          dodo_payment_id?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

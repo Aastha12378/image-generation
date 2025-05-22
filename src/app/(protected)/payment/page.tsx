@@ -200,7 +200,7 @@ const PricingPlans = ({ hideHeader = false }: PricingPlansProps) => {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col">
       {!hideHeader && (
         <header className="border-b border-gray-200 bg-white">
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">

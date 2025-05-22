@@ -40,6 +40,7 @@ const Playground = () => {
     "color"
   );
   const [style, setStyle] = useState("notion");
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [outputCount, setOutputCount] = useState<number>(1);
   const [referenceImage, setReferenceImage] = useState<File | null>(null);
   const [referenceImageUrl, setReferenceImageUrl] = useState<string>("");
@@ -81,13 +82,16 @@ const Playground = () => {
     }
 
     if (remainingCredits <= 0) {
-      toast.error("You have no credits remaining. Please purchase more credits to continue.", {
-        duration: 10000,
-        action: {
-          label: "Purchase Credits",
-          onClick: () => router.push("/payment")
+      toast.error(
+        "You have no credits remaining. Please purchase more credits to continue.",
+        {
+          duration: 10000,
+          action: {
+            label: "Purchase Credits",
+            onClick: () => router.push("/payment"),
+          },
         }
-      });
+      );
       return;
     }
 
@@ -102,16 +106,17 @@ const Playground = () => {
           style,
           colorMode,
           outputCount,
+          template: selectedTemplate,
         }),
       });
       const data = await response.json();
-      const results = (data.images || []).map((img: any, idx: number) => ({
+      const results = (data.images || []).map((img: any) => ({
         provider: style,
         imageUrl: `data:${img.mimeType};base64,${img.base64}`,
-      }));
+      }));      
       setGeneratedResults(results);
       toast.success("Illustration generated successfully");
-      
+
       // Update remaining credits after successful generation
       const updatedResponse = await getUser();
       setRemainingCredits(updatedResponse.userData?.remaining_credits || 0);
@@ -200,7 +205,9 @@ const Playground = () => {
           <div className="flex items-center space-x-2 border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl shadow-sm">
             <Zap className="h-4 w-4 text-yellow-500" />
             <span className="text-sm font-medium text-gray-600">Credits:</span>
-            <span className="text-base font-semibold text-gray-900">{remainingCredits}</span>
+            <span className="text-base font-semibold text-gray-900">
+              {remainingCredits}
+            </span>
           </div>
           <Button variant="ghost" size="sm" asChild>
             <Link href="/profile">Profile</Link>
@@ -360,33 +367,51 @@ const Playground = () => {
                       </div>
                     </TabsContent>
                     <TabsContent value="template" className="mt-2">
-                      <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
-                        {templates.length > 0 ? (
-                          templates.map((template, index) => (
-                            <div
-                              key={index}
-                              className="border rounded-md p-2 cursor-pointer hover:border-blue-500"
-                              onClick={() => setReferenceImageUrl(template.url)}
-                            >
-                              <img
-                                src={template.url}
-                                alt={`Template ${index}`}
-                                className="w-full h-20 object-cover"
-                              />
-                            </div>
-                          ))
-                        ) : (
-                          <div className="border rounded-md p-2 flex items-center justify-center h-20 col-span-2">
-                            <p className="text-xs text-gray-500">
-                              No templates yet
+                      <p className="text-sm font-semibold mb-1">
+                        Choose a style
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+                        {[
+                          { label: "Ghibli", img: "/images/ghibli.jpeg" },
+                          { label: "Comic", img: "/images/comic.jpeg" },
+                          { label: "Anime", img: "/images/anime.jpeg" },
+                          {
+                            label: "Prophetic Vision",
+                            img: "/images/prophetic-vision-generator.jpeg",
+                          },
+                          { label: "Cartoon", img: "/images/cartoon.jpeg" },
+                          { label: "Doodle", img: "/images/doodle.jpeg" },
+                          { label: "Notion", img: "/images/notion.png" },
+                          { label: "Isometric", img: "/images/isometric.jpeg" },
+                          { label: "Pop Art", img: "/images/PopArt.jpeg" },
+                          { label: "Sketch", img: "/images/sketch.jpeg" },
+                          { label: "Vintage", img: "/images/vintagePoster.jpeg" },
+                          { label: "Watercolor", img: "/images/waterColor.jpeg" },
+                        ].map((style, idx) => (
+                          <div
+                            key={idx}
+                            className={`flex flex-col items-center justify-center border rounded-xl p-3 cursor-pointer hover:border-blue-500 transition text-center ${
+                              selectedTemplate === style.label ? "border-blue-500 bg-blue-50" : ""
+                            }`}
+                            onClick={() => {
+                              setSelectedTemplate(style.label);
+                              setStyle(style.label.toLowerCase());
+                            }}
+                          >
+                            <img
+                              src={style.img}
+                              alt={style.label}
+                              className="w-16 h-16 object-cover rounded-md mb-2"
+                            />
+                            <p className="text-xs font-medium leading-tight line-clamp-2">
+                              {style.label}
                             </p>
                           </div>
-                        )}
+                        ))}
                       </div>
                     </TabsContent>
                   </Tabs>
                 </div>
-
 
                 {/* Generate Button */}
                 <div className="mt-4">

@@ -3,6 +3,8 @@ import { createClient } from "@/src/integrations/supabase/server";
 
 export const dynamic = "force-dynamic";
 
+const CLOUDINARY_FETCH_BASE = "https://res.cloudinary.com/YOUR_CLOUD_NAME/image/fetch/f_png/";
+
 export async function GET(req: Request) {
   try {
     const supabase = await createClient();
@@ -34,7 +36,8 @@ export async function GET(req: Request) {
         .from("generated-images")
         .getPublicUrl(imagePath);
 
-      console.log("Image URL:", urlData);
+      const svgUrl = urlData?.publicUrl ?? "";
+      const pngUrl = `${CLOUDINARY_FETCH_BASE}${encodeURIComponent(svgUrl)}`;
 
       return {
         id: img.id ?? null,
@@ -42,7 +45,7 @@ export async function GET(req: Request) {
         style: img.style ?? null,
         color_mode: img.color_mode ?? null,
         created_at: img.created_at ?? null,
-        publicUrl: urlData?.publicUrl ?? null,
+        publicUrl: pngUrl, // return PNG instead of SVG
       };
     });
 
