@@ -1,114 +1,122 @@
-import { useEffect, useRef, ReactNode } from 'react'
-import { gsap } from 'gsap'
-import { cn } from "@/src/lib/utils"
+"use client";
 
-interface GridMotionProps {
-  /**
-   * Array of items to display in the grid
-   */
-  items?: (string | ReactNode)[]
-  /**
-   * Color for the radial gradient background
-   */
-  gradientColor?: string
-  /**
-   * Additional CSS classes
-   */
-  className?: string
-}
+import { motion } from "motion/react";
+import { cn } from "@/src/lib/utils";
 
-export function GridMotion({
-  items = [],
-  gradientColor = 'black',
-  className
-}: GridMotionProps) {
-  const gridRef = useRef<HTMLDivElement>(null)
-  const rowRefs = useRef<(HTMLDivElement | null)[]>([])
-  const mouseXRef = useRef(typeof window !== "undefined" ? window.innerWidth / 2 : 0)
-
-  const totalItems = 28
-  const defaultItems = Array.from({ length: totalItems }, (_, index) => `Item ${index + 1}`)
-  const combinedItems = items.length > 0 ? items.slice(0, totalItems) : defaultItems
-
-  useEffect(() => {
-    gsap.ticker.lagSmoothing(0)
-
-    const handleMouseMove = (e: MouseEvent) => {
-      mouseXRef.current = e.clientX
-    }
-
-    const updateMotion = () => {
-      const maxMoveAmount = 300
-      const baseDuration = 0.8
-      const inertiaFactors = [0.6, 0.4, 0.3, 0.2]
-
-      rowRefs.current.forEach((row, index) => {
-        if (row) {
-          const direction = index % 2 === 0 ? 1 : -1
-          const moveAmount = ((mouseXRef.current / window.innerWidth) * maxMoveAmount - maxMoveAmount / 2) * direction
-
-          gsap.to(row, {
-            x: moveAmount,
-            duration: baseDuration + inertiaFactors[index % inertiaFactors.length],
-            ease: 'power3.out',
-            overwrite: 'auto',
-          })
-        }
-      })
-    }
-
-    const removeAnimationLoop = gsap.ticker.add(updateMotion)
-    window.addEventListener('mousemove', handleMouseMove)
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
-      removeAnimationLoop()
-    }
-  }, [])
+export const ThreeDMarquee = ({
+  images,
+  className,
+}: {
+  images: string[];
+  className?: string;
+}) => {
+  const chunkSize = Math.ceil(images.length / 4);
+  const chunks = Array.from({ length: 4 }, (_, colIndex) => {
+    const start = colIndex * chunkSize;
+    return images.slice(start, start + chunkSize);
+  });
 
   return (
-    <div className={cn("h-full w-full overflow-hidden", className)} ref={gridRef}>
-      <section
-        className="relative flex h-screen w-full items-center justify-center overflow-hidden"
-        style={{
-          background: `radial-gradient(circle, ${gradientColor} 0%, transparent 100%)`,
-        }}
-      >
-        <div className="relative z-2 flex-none grid h-[150vh] w-[150vw] gap-4 grid-rows-[repeat(4,1fr)] grid-cols-[100%] -rotate-15 origin-center">
-          {[...Array(4)].map((_, rowIndex) => (
-            <div
-              key={rowIndex}
-              className="grid gap-4 grid-cols-[repeat(7,1fr)] will-change-transform will-change-filter"
-              ref={(el:any) => (rowRefs.current[rowIndex] = el)}
-            >
-              {[...Array(7)].map((_, itemIndex) => {
-                const content = combinedItems[rowIndex * 7 + itemIndex]
-                return (
-                  <div key={itemIndex} className="relative">
-                    <div className="relative h-full w-full overflow-hidden rounded-lg bg-muted flex items-center justify-center text-foreground text-xl">
-                      {typeof content === 'string' && content.startsWith('http') ? (
-                        <div
-                          className="absolute inset-0 bg-cover bg-center"
-                          style={{
-                            backgroundImage: `url(${content})`,
-                          }}
-                        />
-                      ) : (
-                        <div className="p-4 text-center z-1">
-                          {content}
-                        </div>
-                      )}
-                    </div>
+    <div className={cn("absolute inset-0 overflow-hidden", className)}>
+      <div className="flex size-full items-center justify-center">
+        <div className="size-[1720px] shrink-0 scale-50 sm:scale-75 lg:scale-100">
+          <div
+            style={{ transform: "rotateX(55deg) rotateY(0deg) rotateZ(-45deg)" }}
+            className="relative top-96 right-[50%] grid size-full origin-top-left grid-cols-4 gap-8 transform-3d"
+          >
+            {chunks.map((subarray, colIndex) => (
+              <motion.div
+                animate={{ y: colIndex % 2 === 0 ? 100 : -100 }}
+                transition={{
+                  duration: colIndex % 2 === 0 ? 10 : 15,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                }}
+                key={colIndex + "marquee"}
+                className="flex flex-col items-start gap-8"
+              >
+                <GridLineVertical className="-left-4" offset="80px" />
+                {subarray.map((image, imageIndex) => (
+                  <div className="relative" key={imageIndex + image}>
+                    <GridLineHorizontal className="-top-4" offset="20px" />
+                    <motion.img
+                      whileHover={{ y: -10 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      src={image}
+                      alt={`Image ${imageIndex + 1}`}
+                      className="aspect-[970/700] rounded-lg object-cover ring ring-gray-950/5 hover:shadow-2xl"
+                      width={970}
+                      height={700}
+                    />
                   </div>
-                )
-              })}
-            </div>
-          ))}
+                ))}
+              </motion.div>
+            ))}
+          </div>
         </div>
-        <div className="relative pointer-events-none h-full w-full inset-0">
-          <div className="rounded-none" />
-        </div>
-      </section>
+      </div>
     </div>
-  )
-}
+  );
+};
+
+const GridLineHorizontal = ({
+  className,
+  offset,
+}: {
+  className?: string;
+  offset?: string;
+}) => (
+  <div
+    style={{
+      "--background": "#ffffff",
+      "--color": "rgba(0, 0, 0, 0.2)",
+      "--height": "1px",
+      "--width": "5px",
+      "--fade-stop": "90%",
+      "--offset": offset || "200px",
+      "--color-dark": "rgba(255, 255, 255, 0.2)",
+      maskComposite: "exclude",
+    } as React.CSSProperties}
+    className={cn(
+      "absolute left-[calc(var(--offset)/2*-1)] h-[var(--height)] w-[calc(100%+var(--offset))]",
+      "bg-[linear-gradient(to_right,var(--color),var(--color)_50%,transparent_0,transparent)]",
+      "[background-size:var(--width)_var(--height)]",
+      "[mask:linear-gradient(to_left,var(--background)_var(--fade-stop),transparent),_linear-gradient(to_right,var(--background)_var(--fade-stop),transparent),_linear-gradient(black,black)]",
+      "[mask-composite:exclude]",
+      "z-30",
+      "dark:bg-[linear-gradient(to_right,var(--color-dark),var(--color-dark)_50%,transparent_0,transparent)]",
+      className,
+    )}
+  />
+);
+
+const GridLineVertical = ({
+  className,
+  offset,
+}: {
+  className?: string;
+  offset?: string;
+}) => (
+  <div
+    style={{
+      "--background": "#ffffff",
+      "--color": "rgba(0, 0, 0, 0.2)",
+      "--height": "5px",
+      "--width": "1px",
+      "--fade-stop": "90%",
+      "--offset": offset || "150px",
+      "--color-dark": "rgba(255, 255, 255, 0.2)",
+      maskComposite: "exclude",
+    } as React.CSSProperties}
+    className={cn(
+      "absolute top-[calc(var(--offset)/2*-1)] h-[calc(100%+var(--offset))] w-[var(--width)]",
+      "bg-[linear-gradient(to_bottom,var(--color),var(--color)_50%,transparent_0,transparent)]",
+      "[background-size:var(--width)_var(--height)]",
+      "[mask:linear-gradient(to_top,var(--background)_var(--fade-stop),transparent),_linear-gradient(to_bottom,var(--background)_var(--fade-stop),transparent),_linear-gradient(black,black)]",
+      "[mask-composite:exclude]",
+      "z-30",
+      "dark:bg-[linear-gradient(to_bottom,var(--color-dark),var(--color-dark)_50%,transparent_0,transparent)]",
+      className,
+    )}
+  />
+);

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/src/components/ui/button";
 import { Textarea } from "@/src/components/ui/textarea";
 import { toast } from "sonner";
@@ -10,7 +10,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/src/components/ui/tabs";
-import { Loader2, Image as ImageIcon, Upload, Zap } from "lucide-react";
+import { Loader2, Image as ImageIcon, Zap } from "lucide-react";
 import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { Slider } from "@/src/components/ui/slider";
 import Link from "next/link";
@@ -24,6 +24,19 @@ import {
 } from "@/src/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import { getUser } from "@/src/lib/actions/auth";
+import { FileUpload } from "@/src/components/file-upload";
+
+interface GeneratedImage {
+  provider: string;
+  imageUrl: string;
+}
+
+interface ApiResponse {
+  images: Array<{
+    mimeType: string;
+    base64: string;
+  }>;
+}
 
 const IllustrationStyles = [
   { id: "notion", name: "Notion", icon: "👤" },
@@ -35,37 +48,21 @@ const IllustrationStyles = [
 const Playground = () => {
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedResults, setGeneratedResults] = useState<Array<any>>([]);
+  const [generatedResults, setGeneratedResults] = useState<GeneratedImage[]>(
+    []
+  );
   const [colorMode, setColorMode] = useState<"color" | "blackAndWhite">(
     "color"
   );
   const [style, setStyle] = useState("notion");
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [outputCount, setOutputCount] = useState<number>(1);
-  const [referenceImage, setReferenceImage] = useState<File | null>(null);
   const [referenceImageUrl, setReferenceImageUrl] = useState<string>("");
-  const [templates, setTemplates] = useState<Array<any>>([]);
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [remainingCredits, setRemainingCredits] = useState<number>(0);
 
   // Check if the form is valid for generation
   const isFormValid = !!prompt.trim();
-
-  // Fetch templates from Supabase
-  useEffect(() => {
-    const fetchTemplates = async () => {
-      try {
-        // In a real implementation, fetch templates from Supabase
-        // This is a placeholder for demo purposes
-        setTemplates([]);
-      } catch (error) {
-        console.error("Error fetching templates:", error);
-      }
-    };
-
-    fetchTemplates();
-  }, []);
 
   useEffect(() => {
     const fetchUserCredits = async () => {
@@ -109,11 +106,11 @@ const Playground = () => {
           template: selectedTemplate,
         }),
       });
-      const data = await response.json();
-      const results = (data.images || []).map((img: any) => ({
+      const data: ApiResponse = await response.json();
+      const results = (data.images || []).map((img) => ({
         provider: style,
         imageUrl: `data:${img.mimeType};base64,${img.base64}`,
-      }));      
+      }));
       setGeneratedResults(results);
       toast.success("Illustration generated successfully");
 
@@ -125,25 +122,6 @@ const Playground = () => {
       toast.error("Error generating illustration");
     } finally {
       setIsGenerating(false);
-    }
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setReferenceImage(file);
-      const fileReader = new FileReader();
-      fileReader.onload = (event) => {
-        if (event.target?.result) {
-          setReferenceImageUrl(event.target.result as string);
-        }
-      };
-      fileReader.readAsDataURL(file);
-    } catch (error: any) {
-      console.error("Error uploading file:", error);
-      toast.error("Error uploading file");
     }
   };
 
@@ -188,7 +166,7 @@ const Playground = () => {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
-      <header className="border-b border-gray-200 bg-white py-3 px-6 sticky flex items-center justify-between">
+      <header className="border-b border-gray-200 py-3 px-6 sticky flex items-center justify-between">
         <div className="flex items-center">
           <Link href="/">
             <IllustrationLogo small />
@@ -197,9 +175,6 @@ const Playground = () => {
         <div className="flex items-center space-x-4">
           <Button variant="ghost" size="sm" asChild>
             <Link href="/">Home</Link>
-          </Button>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/playground">Playground</Link>
           </Button>
           <div className="border-r border-gray-200 h-6"></div>
           <div className="flex items-center space-x-2 border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl shadow-sm">
@@ -212,11 +187,11 @@ const Playground = () => {
           <Button variant="ghost" size="sm" asChild>
             <Link href="/profile">Profile</Link>
           </Button>
-          <Button
-            variant="outline"
+          <Button 
+            variant="ghost" 
             size="sm"
             onClick={async () => {
-              signOutAction();
+              await signOutAction();
               router.push("/login");
             }}
           >
@@ -321,7 +296,7 @@ const Playground = () => {
                       <TabsTrigger value="template">Templates</TabsTrigger>
                     </TabsList>
                     <TabsContent value="upload" className="mt-2">
-                      <div className="border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center justify-center">
+                      <div className="border-2 border-dashed border-gray-300 rounded-md p-6">
                         {referenceImageUrl ? (
                           <div className="w-full">
                             <img
@@ -334,7 +309,6 @@ const Playground = () => {
                               size="sm"
                               className="w-full"
                               onClick={() => {
-                                setReferenceImage(null);
                                 setReferenceImageUrl("");
                               }}
                             >
@@ -342,27 +316,24 @@ const Playground = () => {
                             </Button>
                           </div>
                         ) : (
-                          <>
-                            <Upload className="h-10 w-10 text-gray-400" />
-                            <p className="mt-2 text-sm text-gray-500">
-                              Click to upload or drag and drop
-                            </p>
-                            <input
-                              type="file"
-                              ref={fileInputRef}
-                              accept="image/*"
-                              className="hidden"
-                              onChange={handleFileUpload}
-                            />
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="mt-2"
-                              onClick={() => fileInputRef.current?.click()}
-                            >
-                              Upload Image
-                            </Button>
-                          </>
+                          <FileUpload
+                            onChange={(files: File[]) => {
+                              if (files.length > 0) {
+                                const file = files[0];
+                                const fileReader = new FileReader();
+                                fileReader.onload = (event) => {
+                                  if (event.target?.result) {
+                                    setReferenceImageUrl(
+                                      event.target.result as string
+                                    );
+                                  }
+                                };
+                                fileReader.readAsDataURL(file);
+                              }
+                            }}
+                            multiple={false}
+                            maxSize={5 * 1024 * 1024}
+                          />
                         )}
                       </div>
                     </TabsContent>
@@ -385,13 +356,21 @@ const Playground = () => {
                           { label: "Isometric", img: "/images/isometric.jpeg" },
                           { label: "Pop Art", img: "/images/PopArt.jpeg" },
                           { label: "Sketch", img: "/images/sketch.jpeg" },
-                          { label: "Vintage", img: "/images/vintagePoster.jpeg" },
-                          { label: "Watercolor", img: "/images/waterColor.jpeg" },
+                          {
+                            label: "Vintage",
+                            img: "/images/vintagePoster.jpeg",
+                          },
+                          {
+                            label: "Watercolor",
+                            img: "/images/waterColor.jpeg",
+                          },
                         ].map((style, idx) => (
                           <div
                             key={idx}
                             className={`flex flex-col items-center justify-center border rounded-xl p-3 cursor-pointer hover:border-blue-500 transition text-center ${
-                              selectedTemplate === style.label ? "border-blue-500 bg-blue-50" : ""
+                              selectedTemplate === style.label
+                                ? "border-blue-500 bg-blue-50"
+                                : ""
                             }`}
                             onClick={() => {
                               setSelectedTemplate(style.label);
@@ -435,7 +414,7 @@ const Playground = () => {
           </ScrollArea>
         </div>
 
-        <div className="w-3/5 sticky top-0 overflow-y-auto bg-gray-50">
+        <div className="w-3/5 sticky top-0 overflow-y-auto">
           <div className="p-6 h-full flex flex-col">
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-gray-800">
@@ -460,7 +439,7 @@ const Playground = () => {
                   </div>
                 </div>
               ) : generatedResults.length === 0 ? (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 flex flex-col items-center justify-center">
+                <div className="rounded-lg shadow-sm border border-gray-200 p-12 flex flex-col items-center justify-center">
                   <div className="h-24 w-24 rounded-full bg-gray-100 flex items-center justify-center mb-4">
                     <ImageIcon className="h-12 w-12 text-gray-400" />
                   </div>
@@ -481,7 +460,7 @@ const Playground = () => {
                   {generatedResults.map((result, index) => (
                     <div key={index} className="grid w-full place-items-center">
                       <div
-                        className="relative w-full h-full flex items-center justify-center bg-white rounded-2xl border-2 border-dashed border-gray-200"
+                        className="relative w-full h-full flex items-center justify-center rounded-2xl border-2 border-dashed border-gray-200"
                         style={{ width: 500, height: 500, marginBottom: 20 }}
                       >
                         {result.imageUrl ? (

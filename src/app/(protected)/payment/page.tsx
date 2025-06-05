@@ -41,31 +41,31 @@ const PricingCard = ({ tier, billingPeriod, disabled }: PricingCardProps) => {
   return (
     <div
       className={cn(
-        "relative group rounded-2xl border border-gray-200 p-6 transition-all hover:shadow-lg hover:-translate-y-1 bg-white",
+        "relative group rounded-2xl border border-border p-6 transition-all hover:shadow-xl hover:-translate-y-1 bg-card/50 backdrop-blur-sm",
         tier.popular && "border-primary ring-2 ring-primary/30"
       )}
     >
       {tier.popular && (
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-fit px-4 py-1 rounded-full bg-gradient-to-r from-primary to-purple-600 text-white text-xs font-semibold shadow-sm">
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-fit px-4 py-1 rounded-full bg-gradient-to-r from-primary to-primary/80 text-white text-xs font-semibold shadow-lg">
           Most Popular
         </div>
       )}
 
       <div>
-        <h3 className="text-xl font-semibold text-gray-900">{tier.name}</h3>
+        <h3 className="text-xl font-semibold text-white">{tier.name}</h3>
         {tier.description && (
-          <p className="mt-1 text-sm text-gray-500">{tier.description}</p>
+          <p className="mt-1 text-sm text-gray-400">{tier.description}</p>
         )}
 
         <div className="mt-4">
           <div className="flex items-baseline">
-            <span className="text-4xl font-bold text-gray-900">${price}</span>
+            <span className="text-4xl font-bold text-white">${price}</span>
             {originalPrice && (
-              <span className="ml-2 text-lg text-gray-400 line-through">
+              <span className="ml-2 text-lg text-gray-500 line-through">
                 ${originalPrice}
               </span>
             )}
-            <span className="ml-1 text-sm text-gray-500">/month</span>
+            <span className="ml-1 text-sm text-gray-400">/month</span>
           </div>
           {billingPeriod === "yearly" && (
             <p className="text-xs text-gray-400 mt-1">Billed annually</p>
@@ -76,7 +76,7 @@ const PricingCard = ({ tier, billingPeriod, disabled }: PricingCardProps) => {
           {tier.features.map((feature) => (
             <li
               key={feature.name}
-              className="flex items-start text-sm text-gray-700"
+              className="flex items-start text-sm text-gray-400"
             >
               <Check className="mr-2 h-4 w-4 flex-shrink-0 text-primary" />
               {feature.name}
@@ -86,7 +86,7 @@ const PricingCard = ({ tier, billingPeriod, disabled }: PricingCardProps) => {
 
         <Button
           onClick={tier.onSelect}
-          className={cn("mt-8 w-full", tier.popular && "bg-primary text-white")}
+          className={cn("mt-8 w-full", tier.popular && "bg-primary text-white hover:bg-primary/90")}
           variant={tier.buttonVariant || "default"}
           disabled={disabled}
         >
@@ -200,18 +200,18 @@ const PricingPlans = ({ hideHeader = false }: PricingPlansProps) => {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col bg-background text-foreground">
       {!hideHeader && (
-        <header className="border-b border-gray-200 bg-white">
+        <header className="border-b border-border bg-card/50 backdrop-blur-sm">
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">
             <IllustrationLogo />
             <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-2 border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl shadow-sm">
-                <Zap className="h-4 w-4 text-yellow-500" />
-                <span className="text-sm font-medium text-gray-600">
+              <div className="flex items-center space-x-2 border border-border bg-card/50 px-4 py-2 rounded-xl shadow-lg">
+                <Zap className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-gray-400">
                   Credits:
                 </span>
-                <span className="text-base font-semibold text-gray-900">
+                <span className="text-base font-semibold text-white">
                   {userCredits}
                 </span>
               </div>
@@ -222,7 +222,7 @@ const PricingPlans = ({ hideHeader = false }: PricingPlansProps) => {
 
       <div className="flex-1 px-4 py-12">
         <div className="max-w-5xl mx-auto text-center">
-          <h1 className="text-3xl font-bold mb-8">Choose Your Plan</h1>
+          <h1 className="text-4xl font-bold mb-8 text-white">Choose Your Plan</h1>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-8">
             {plans.map((plan) => (
               <div key={plan.id} className="relative">

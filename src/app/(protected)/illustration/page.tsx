@@ -20,16 +20,16 @@ const styleOptions = [
   { id: "suggest", name: "Suggest", icon: "lightbulb" },
 ];
 
-// Define color mode options
-const colorOptions = [
-  { id: "color", name: "Color" },
-  { id: "blackwhite", name: "Black & White" },
-];
+// // Define color mode options
+// const colorOptions = [
+//   { id: "color", name: "Color" },
+//   { id: "blackwhite", name: "Black & White" },
+// ];
 
 export default function Index() {
   const [prompt, setPrompt] = useState("");
   const [style, setStyle] = useState("realistic");
-  const [colorMode, setColorMode] = useState("color");
+  // const [colorMode, setColorMode] = useState("color");
   const [numOutputs, setNumOutputs] = useState(1);
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);

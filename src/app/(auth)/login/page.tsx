@@ -6,8 +6,7 @@ import Link from "next/link";
 import { Label } from "@/src/components/ui/label";
 import { supabase } from "@/src/integrations/supabase/client"; // Import Supabase client
 import { Button } from "@/src/components/ui/button";
-import { GridMotion } from "@/src/components/GridMotion";
-import Image from "next/image";
+import { ThreeDMarquee } from "@/src/components/GridMotion";
 import { signInAction } from "@/src/lib/actions/auth";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
@@ -37,10 +36,10 @@ const Login = () => {
         data: { session },
       } = await supabase.auth.getSession();
       if (session) {
-        const { data: user, error } = await supabase
+        const { error } = await supabase
           .from("users")
           .select("id")
-          .eq("email", emailkey); // Use session.user.email
+          .eq("email", emailkey);
 
         if (error) {
           toast.error(error.message);
@@ -53,7 +52,7 @@ const Login = () => {
       }
     };
     checkLoginUser();
-  }, []); // Add router as dependency
+  }, [emailkey, router]); // Add missing dependencies
 
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
@@ -65,7 +64,6 @@ const Login = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
   } = form;
 
   const onSubmit = async (data: { email: string }) => {
@@ -92,25 +90,68 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-illustration-background">
-      {/* Left side - Form */}
-      <div className="flex w-full lg:w-1/2 flex-col justify-center px-8 py-12 sm:px-16 lg:px-24">
-        <div className="mx-auto w-full max-w-sm">
-          <div className="mb-8">
-            <IllustrationLogo />
-            <h2 className="mt-6 text-2xl font-bold text-gray-900">
+    <div className="relative h-screen w-full overflow-hidden bg-background">
+      {/* Background */}
+      <ThreeDMarquee
+        images={[
+          "https://assets.aceternity.com/cloudinary_bkp/3d-card.png",
+          "https://assets.aceternity.com/animated-modal.png",
+          "https://assets.aceternity.com/animated-testimonials.webp",
+          "https://assets.aceternity.com/cloudinary_bkp/Tooltip_luwy44.png",
+          "https://assets.aceternity.com/github-globe.png",
+          "https://assets.aceternity.com/glare-card.png",
+          "https://assets.aceternity.com/layout-grid.png",
+          "https://assets.aceternity.com/flip-text.png",
+          "https://assets.aceternity.com/hero-highlight.png",
+          "https://assets.aceternity.com/carousel.webp",
+          "https://assets.aceternity.com/placeholders-and-vanish-input.png",
+          "https://assets.aceternity.com/shooting-stars-and-stars-background.png",
+          "https://assets.aceternity.com/signup-form.png",
+          "https://assets.aceternity.com/cloudinary_bkp/stars_sxle3d.png",
+          "https://assets.aceternity.com/spotlight-new.webp",
+          "https://assets.aceternity.com/cloudinary_bkp/Spotlight_ar5jpr.png",
+          "https://assets.aceternity.com/cloudinary_bkp/Parallax_Scroll_pzlatw_anfkh7.png",
+          "https://assets.aceternity.com/tabs.png",
+          "https://assets.aceternity.com/cloudinary_bkp/Tracing_Beam_npujte.png",
+          "https://assets.aceternity.com/cloudinary_bkp/typewriter-effect.png",
+          "https://assets.aceternity.com/glowing-effect.webp",
+          "https://assets.aceternity.com/hover-border-gradient.png",
+          "https://assets.aceternity.com/cloudinary_bkp/Infinite_Moving_Cards_evhzur.png",
+          "https://assets.aceternity.com/cloudinary_bkp/Lamp_hlq3ln.png",
+          "https://assets.aceternity.com/macbook-scroll.png",
+          "https://assets.aceternity.com/cloudinary_bkp/Meteors_fye3ys.png",
+          "https://assets.aceternity.com/cloudinary_bkp/Moving_Border_yn78lv.png",
+          "https://assets.aceternity.com/multi-step-loader.png",
+          "https://assets.aceternity.com/vortex.png",
+          "https://assets.aceternity.com/wobble-card.png",
+          "https://assets.aceternity.com/world-map.webp",
+        ]}
+        className="pointer-events-none absolute inset-0 h-full w-full"
+      />
+
+      {/* Optional dark overlay */}
+      <div className="absolute inset-0 bg-background/40 z-5" />
+
+      {/* Login Form */}
+      <div className="relative z-10 flex items-center justify-center h-full w-full px-4">
+        <div className="w-full max-w-md bg-white/80 backdrop-blur-xl dark:bg-[#0e0e0e]/80 border border-white/20 rounded-2xl p-8 shadow-xl">
+          <div className="text-center mb-8">
+            <div className="flex justify-center">
+              <IllustrationLogo />
+            </div>
+            <h2 className="mt-6 text-2xl font-bold text-gray-900 dark:text-white">
               Welcome back
             </h2>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
               Sign in to your account to continue
             </p>
           </div>
 
-          <form  onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
               <Label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
                 Email
               </Label>
@@ -129,8 +170,8 @@ const Login = () => {
             </Button>
 
             <div className="text-center">
-              <p className="text-sm text-gray-600">
-                Don't have an account?{" "}
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Don&apos;t have an account?{" "}
                 <Link
                   href="/register"
                   className="font-medium text-illustration-accent hover:underline"
@@ -141,40 +182,6 @@ const Login = () => {
             </div>
           </form>
         </div>
-      </div>
-
-      {/* Right side - Illustration */}
-      <div className="h-screen lg:w-1/2 bg-black">
-        <GridMotion
-          items={[
-            "Item 1",
-            <div key="jsx-item-1">dfggdg</div>,
-            "images/ai-gen.svg",
-            "Item 2",
-            <div key="jsx-item-2">Custom JSX Content</div>,
-            "Item 4",
-            <div key="jsx-item-2">Custom JSX Content</div>,
-            "images/ai-gen.svg",
-            "Item 5",
-            <div key="jsx-item-2">Custom JSX Content</div>,
-            <Image src={"images/ai-gen.svg"} width={50} height={50} alt="ai" />,
-            <div key="jsx-item-2">Custom JSX Content</div>,
-            "images/ai-gen.svg",
-            "Item 8",
-            <div key="jsx-item-2">Custom JSX Content</div>,
-            "Item 10",
-            <div key="jsx-item-3">Custom JSX Content</div>,
-            "images/ai-gen.svg",
-            "Item 11",
-            <div key="jsx-item-2">Custom JSX Content</div>,
-            "Item 13",
-            <div key="jsx-item-4">Custom JSX Content</div>,
-            "images/ai-gen.svg",
-            "Item 14",
-          ]}
-          gradientColor="hsl(var(--brand-foreground))"
-          className="opacity-75"
-        />
       </div>
     </div>
   );
