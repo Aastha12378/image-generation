@@ -1,5 +1,5 @@
 // utils/cors.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 // Function to add CORS headers
 export function addCorsHeaders(response: NextResponse) {

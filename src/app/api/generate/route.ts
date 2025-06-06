@@ -190,11 +190,11 @@ Return a structured, clean SVG vector illustration that is visually engaging and
     }
 
     return NextResponse.json({ images: imageDataList, ids: imageIds });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Image generation failed:", error);
-
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
     return NextResponse.json({
-      error: error?.message || "An unexpected error occurred",
+      error: errorMessage,
     });
   }
 }

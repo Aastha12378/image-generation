@@ -36,6 +36,13 @@ type CreditHistoryItem = {
   type: 'purchase' | 'usage';
 };
 
+interface GeneratedImage {
+  id: string;
+  url: string;
+  created_at: string;
+  user_id: string;
+}
+
 const TABS = [
   { key: "profile", label: "Profile" },
   { key: "generated", label: "Generated Images" },
@@ -48,7 +55,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<Profile | null>(null);
   const [activeTab, setActiveTab] = useState("profile");
-  const [generatedImages, setGeneratedImages] = useState<any[]>([]);
+  const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
   const [currentPlan, setCurrentPlan] = useState<Database["public"]["Tables"]["subscription_plans"]["Row"] | null>(null);
   const [remainingCredits, setRemainingCredits] = useState<number>(0);
 
@@ -323,7 +330,7 @@ const Profile = () => {
                       className="rounded border border-zinc-800 p-2 flex flex-col items-center bg-zinc-800/50"
                     >
                       <Image
-                        src={img.publicUrl}
+                        src={img.url}
                         width={128}
                         height={128}
                         alt={img.prompt || "Generated image"}

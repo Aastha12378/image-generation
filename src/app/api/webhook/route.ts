@@ -10,11 +10,25 @@ interface PaymentData {
   tax?: number;
   currency?: string;
   error_message?: string;
+  payment_id?: string;
+  total_amount?: number;
+  product_cart?: Array<{
+    product_id: string;
+    quantity: number;
+  }>;
   metadata?: {
     userId?: string;
-    [key: string]: any;
+    planId?: string;
+    subscriptionTimestamp?: string;
   };
-  [key: string]: any;
+}
+
+interface WebhookPayload {
+  type: string;
+  data: {
+    payload_type: string;
+    payment_id: string;
+  };
 }
 
 export async function POST(request: Request) {
@@ -29,7 +43,7 @@ export async function POST(request: Request) {
       "webhook-timestamp": headersList.get("webhook-timestamp") || "",
     };
     await webhook.verify(rawBody, webhookHeaders);
-    const payload = JSON.parse(rawBody);
+    const payload = JSON.parse(rawBody) as WebhookPayload;
 
     if (payload.data.payload_type === "Payment") {
       switch (payload.type) {

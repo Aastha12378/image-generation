@@ -9,6 +9,25 @@ export const client = new DodoPayments({
   environment: process.env.DODO_ENVIRONMENT as "live_mode" | "test_mode",
 });
 
+interface UserData {
+  id: string;
+  email: string;
+  dodo_customer_id?: string;
+  billing_data?: {
+    city: string;
+    country: string;
+    state: string;
+    street: string;
+    zipcode: string;
+  };
+}
+
+interface PaymentMetadata {
+  userId: string;
+  planId: string;
+  subscriptionTimestamp: string;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
@@ -103,7 +122,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function ensureCustomer(userData: any): Promise<string> {
+export async function ensureCustomer(userData: UserData): Promise<string> {
   if (userData?.id) {
     if (!userData?.dodo_customer_id) {
       const customer = await client.customers.create({
@@ -136,7 +155,7 @@ export async function getPaymentLink(
   customer_id: string,
   productId: string,
   tokens: number,
-  metadata: any
+  metadata: PaymentMetadata
 ) {
   if (!productId) {
     throw new Error("Product ID is required");

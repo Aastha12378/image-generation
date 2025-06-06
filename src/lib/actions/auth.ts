@@ -43,7 +43,7 @@ export const signUpAction = async (email:string) => {
 export const signInAction = async (formData: FormData) => {
   const email = formData.get("email") as string;
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signInWithOtp({
+  const { error } = await supabase.auth.signInWithOtp({
     email: email,
     options: {
       shouldCreateUser: true,
@@ -61,9 +61,8 @@ export const signOutAction = async () => {
 
 export async function verifyOtp(formData: FormData) {
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.verifyOtp({
+  const { error } = await supabase.auth.verifyOtp({
     email: formData.get("email") as string,
-
     token: formData.get("otp") as string,
     type: "email",
   });
@@ -167,12 +166,13 @@ export async function getUser() {
       data: user,
       userData: userData,
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("An unexpected error occurred in getUser:", err);
+    const errorMessage = err instanceof Error ? err.message : String(err);
     return {
       success: false,
       message: "An unexpected error occurred",
-      error: err.message || err,
+      error: errorMessage,
     };
   }
 }
