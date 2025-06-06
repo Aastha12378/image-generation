@@ -1,6 +1,6 @@
 import { Webhook } from "standardwebhooks";
 import { headers } from "next/headers";
-import { client } from "../billing-details/route";
+import { client } from "../billing-details/utils";
 import { createClient } from "@/src/integrations/supabase/server";
 
 const webhook = new Webhook(process.env.DODO_PAYMENTS_WEBHOOK_KEY!);
