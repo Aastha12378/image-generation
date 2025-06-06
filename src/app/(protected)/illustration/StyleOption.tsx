@@ -4,14 +4,13 @@ import {
 } from "lucide-react";
 
 interface StyleOptionProps {
-  id: string;
   name: string;
   icon: string;
   selected: boolean;
   onSelect: () => void;
 }
 
-const StyleOption = ({ id, name, icon, selected, onSelect }: StyleOptionProps) => {
+const StyleOption = ({ name, icon, selected, onSelect }: StyleOptionProps) => {
   let IconComponent: LucideIcon;
   
   switch (icon) {

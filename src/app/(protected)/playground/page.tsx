@@ -4,6 +4,7 @@ import { Button } from "@/src/components/ui/button";
 import { Textarea } from "@/src/components/ui/textarea";
 import { toast } from "sonner";
 import IllustrationLogo from "@/src/components/IllustrationLogo";
+import Image from "next/image";
 import {
   Tabs,
   TabsContent,
@@ -299,10 +300,12 @@ const Playground = () => {
                       <div className="border-2 border-dashed border-gray-300 rounded-md p-6">
                         {referenceImageUrl ? (
                           <div className="w-full">
-                            <img
+                            <Image
                               src={referenceImageUrl}
                               alt="Reference"
-                              className="mx-auto h-32 object-contain mb-2"
+                              width={128}
+                              height={128}
+                              className="mx-auto object-contain mb-2"
                             />
                             <Button
                               variant="outline"
@@ -377,10 +380,12 @@ const Playground = () => {
                               setStyle(style.label.toLowerCase());
                             }}
                           >
-                            <img
+                            <Image
                               src={style.img}
                               alt={style.label}
-                              className="w-16 h-16 object-cover rounded-md mb-2"
+                              width={64}
+                              height={64}
+                              className="object-cover rounded-md mb-2"
                             />
                             <p className="text-xs font-medium leading-tight line-clamp-2">
                               {style.label}
@@ -464,13 +469,13 @@ const Playground = () => {
                         style={{ width: 500, height: 500, marginBottom: 20 }}
                       >
                         {result.imageUrl ? (
-                          <img
+                          <Image
                             src={result.imageUrl}
                             alt={`AI generated illustration from ${result.provider}`}
+                            width={440}
+                            height={440}
                             className="object-contain rounded-2xl"
                             style={{
-                              width: 440,
-                              height: 440,
                               background: "white",
                             }}
                           />

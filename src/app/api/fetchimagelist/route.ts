@@ -3,9 +3,21 @@ import { createClient } from "@/src/integrations/supabase/server";
 
 export const dynamic = "force-dynamic";
 
+interface GeneratedImage {
+  id: string | null;
+  storage_path?: string;
+  path?: string;
+  image_path?: string;
+  file_path?: string;
+  prompt: string | null;
+  style: string | null;
+  color_mode: string | null;
+  created_at: string | null;
+}
+
 const CLOUDINARY_FETCH_BASE = "https://res.cloudinary.com/YOUR_CLOUD_NAME/image/fetch/f_png/";
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const supabase = await createClient();
 
@@ -28,7 +40,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: fetchError.message }, { status: 500 });
     }
 
-    const formattedImages = (images || []).map((img: any) => {
+    const formattedImages = (images || []).map((img: GeneratedImage) => {
       const imagePath =
         img.storage_path || img.path || img.image_path || img.file_path || "";
 
@@ -50,7 +62,7 @@ export async function GET(req: Request) {
     });
 
     return NextResponse.json({ images: formattedImages });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'An error occurred' }, { status: 500 });
   }
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Image from "next/image";
 import { Upload } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 
@@ -48,9 +49,11 @@ const ImageUploader = () => {
     <div className="space-y-4">
       {uploadedImage ? (
         <div className="relative">
-          <img 
+          <Image 
             src={uploadedImage} 
             alt="Uploaded reference" 
+            width={512}
+            height={512}
             className="w-full aspect-square object-cover rounded-md" 
           />
           <Button 

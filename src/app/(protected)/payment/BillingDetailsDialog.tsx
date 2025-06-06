@@ -2,7 +2,7 @@
 
 import React from "react";
 import CS from "world-countries";
-import { useForm } from "react-hook-form";
+import { useForm, ControllerRenderProps } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -104,7 +104,8 @@ export default function BillingDetailsDialog({
         toast.error(result.error || "Failed to process billing details.");
         setLoading(false);
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error("Billing details error:", error);
       toast.error("Failed to process billing details.");
       setLoading(false);
     }
@@ -132,7 +133,7 @@ export default function BillingDetailsDialog({
             <FormField
               control={form.control}
               name="street"
-              render={({ field }: { field: any }) => (
+              render={({ field }: { field: ControllerRenderProps<FormValues, "street"> }) => (
                 <FormItem>
                   <FormLabel>Street Address</FormLabel>
                   <FormControl>
@@ -145,7 +146,7 @@ export default function BillingDetailsDialog({
             <FormField
               control={form.control}
               name="city"
-              render={({ field }: { field: any }) => (
+              render={({ field }: { field: ControllerRenderProps<FormValues, "city"> }) => (
                 <FormItem>
                   <FormLabel>City</FormLabel>
                   <FormControl>
@@ -158,7 +159,7 @@ export default function BillingDetailsDialog({
             <FormField
               control={form.control}
               name="state"
-              render={({ field }: { field: any }) => (
+              render={({ field }: { field: ControllerRenderProps<FormValues, "state"> }) => (
                 <FormItem>
                   <FormLabel>State/Province</FormLabel>
                   <FormControl>
@@ -171,7 +172,7 @@ export default function BillingDetailsDialog({
             <FormField
               control={form.control}
               name="zipcode"
-              render={({ field }: { field: any }) => (
+              render={({ field }: { field: ControllerRenderProps<FormValues, "zipcode"> }) => (
                 <FormItem>
                   <FormLabel>Postal Code</FormLabel>
                   <FormControl>
@@ -197,13 +198,13 @@ export default function BillingDetailsDialog({
             <FormField
               control={form.control}
               name="country"
-              render={({ field }: { field: any }) => (
+              render={({ field }: { field: ControllerRenderProps<FormValues, "country"> }) => (
                 <FormItem>
                   <FormLabel>Country</FormLabel>
                   <FormControl>
                     <CountryDropdown
                       options={countriesList}
-                      onChange={(country: any) =>
+                      onChange={(country: Country) =>
                         field.onChange(country.alpha2)
                       }
                       defaultValue={field.value}

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Image from "next/image";
 import { Card, CardContent } from "@/src/components/ui/card";
 
 interface ImageGalleryProps {
@@ -12,9 +13,11 @@ const ImageGallery = ({ images }: ImageGalleryProps) => {
     <div className="space-y-4">
       {selectedImage && (
         <div className="border rounded-lg overflow-hidden">
-          <img 
+          <Image 
             src={selectedImage} 
             alt="Selected illustration" 
+            width={512}
+            height={512}
             className="w-full aspect-square object-cover"
           />
         </div>
@@ -28,9 +31,11 @@ const ImageGallery = ({ images }: ImageGalleryProps) => {
             onClick={() => setSelectedImage(image)}
           >
             <CardContent className="p-0">
-              <img 
+              <Image 
                 src={image} 
                 alt={`Generated illustration ${index + 1}`} 
+                width={256}
+                height={256}
                 className="w-full aspect-square object-cover"
               />
             </CardContent>
