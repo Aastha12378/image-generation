@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import IllustrationLogo from "@/src/components/IllustrationLogo";
 import { toast } from "sonner";
 import {
@@ -14,7 +14,7 @@ import { Button } from "@/src/components/ui/button";
 import { Label } from "@/src/components/ui/label";
 import { ThreeDMarquee } from "@/src/components/GridMotion";
 
-const VerifyOtp = () => {
+const VerifyOtpContent = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [otp, setOtp] = useState("");
@@ -172,6 +172,18 @@ const VerifyOtp = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const VerifyOtp = () => {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-illustration-accent"></div>
+      </div>
+    }>
+      <VerifyOtpContent />
+    </Suspense>
   );
 };
 

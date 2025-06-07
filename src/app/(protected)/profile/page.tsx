@@ -11,9 +11,12 @@ import { supabase } from "@/src/integrations/supabase/client";
 
 interface Profile {
   id: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  email: string;
+  email?: string;
+  user_metadata?: {
+    first_name?: string | null;
+    last_name?: string | null;
+    avatar_url?: string | null;
+  };
 }
 
 interface ProductCartItem {
@@ -41,6 +44,7 @@ interface GeneratedImage {
   url: string;
   created_at: string;
   user_id: string;
+  prompt: string;
 }
 
 const TABS = [
@@ -51,7 +55,6 @@ const TABS = [
 
 const Profile = () => {
   const router = useRouter();
-  const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<Profile | null>(null);
   const [activeTab, setActiveTab] = useState("profile");
@@ -66,11 +69,7 @@ const Profile = () => {
       try {
         const user = await getUser();
         if (user?.data) {
-          setUser({
-            id: user.data.id,
-            email: user.data.email,
-          });
-          setFullName(user.data.email || "");
+          setUser(user.data);
           setRemainingCredits(user.userData?.remaining_credits || 0);
         }
       } catch (error) {
@@ -253,13 +252,13 @@ const Profile = () => {
             <div className="bg-zinc-900 rounded-lg shadow-lg p-6 border border-zinc-800">
               <div className="flex items-center mb-6">
                 <div className="w-20 h-20 bg-zinc-800 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                  {fullName
-                    ? fullName.charAt(0).toUpperCase()
+                  {user?.user_metadata?.first_name
+                    ? user.user_metadata.first_name.charAt(0).toUpperCase()
                     : user?.email?.charAt(0).toUpperCase()}
                 </div>
                 <div className="ml-6">
                   <h2 className="text-xl font-semibold text-white">
-                    {fullName || "User"}
+                    {user?.user_metadata?.first_name || "User"}
                   </h2>
                   <p className="text-zinc-400">{user?.email}</p>
                 </div>

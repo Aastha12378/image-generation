@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Suspense } from "react";
 
 const signInSchema = z.object({
   email: z
@@ -23,12 +24,12 @@ const signInSchema = z.object({
 
 type SignInFormValues = z.infer<typeof signInSchema>;
 
-const Login = () => {
+const LoginContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const emailkey = searchParams?.get("email") || "";
 
-  const [isSubmitting, setIsSubmitting] = useState(false); // Define setIsSubmitting
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const checkLoginUser = async () => {
@@ -52,7 +53,7 @@ const Login = () => {
       }
     };
     checkLoginUser();
-  }, [emailkey, router]); // Add missing dependencies
+  }, [emailkey, router]);
 
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
@@ -77,7 +78,6 @@ const Login = () => {
       
       await signInAction(formData);
 
-      // Redirect to verify OTP with email parameter
       router.push(`/verify-otp?email=${encodeURIComponent(data.email)}`);
       toast.success("Login code sent to your email");
     } catch (error) {
@@ -184,6 +184,14 @@ const Login = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const Login = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginContent />
+    </Suspense>
   );
 };
 

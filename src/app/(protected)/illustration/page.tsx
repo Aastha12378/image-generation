@@ -100,7 +100,7 @@ export default function Index() {
                   {styleOptions.map((option) => (
                     <StyleOption
                       key={option.id}
-                      id={option.id}
+                      // id={option.id}
                       name={option.name}
                       icon={option.icon}
                       selected={style === option.id}

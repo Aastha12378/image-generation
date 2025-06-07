@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { Button } from "@/src/components/ui/button";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -11,7 +11,7 @@ const IllustrationSidebar = () => {
 
       <div className="flex-1 px-2">
         <Button variant="ghost" className="justify-start" asChild>
-          <Link to="/playground">
+          <Link href="/playground">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="mr-2 h-4 w-4"
@@ -31,7 +31,7 @@ const IllustrationSidebar = () => {
         </Button>
 
         <Button variant="ghost" className="justify-start" asChild>
-          <Link to="/palette">
+          <Link href="/palette">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="mr-2 h-4 w-4"
@@ -56,7 +56,7 @@ const IllustrationSidebar = () => {
           </h3>
           <div className="mt-1 space-y-1">
             <Button variant="ghost" className="justify-start w-full" asChild>
-              <Link to="/history">
+              <Link href="/history">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="mr-2 h-4 w-4"
@@ -75,7 +75,7 @@ const IllustrationSidebar = () => {
               </Link>
             </Button>
             <Button variant="ghost" className="justify-start w-full" asChild>
-              <Link to="/liked">
+              <Link href="/liked">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="mr-2 h-4 w-4"
@@ -100,7 +100,7 @@ const IllustrationSidebar = () => {
       <div className="p-4 border-t border-gray-200">
         <div className="flex items-center justify-between">
           <Button variant="ghost" className="justify-start" asChild>
-            <Link to="/settings">
+            <Link href="/settings">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="mr-2 h-4 w-4"
