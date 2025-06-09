@@ -40,7 +40,7 @@ const VerifyOtpContent = () => {
 
       await verifyOtp(formData);
       toast.success("Email verified successfully");
-      router.push("/");
+      router.push("/playground");
     } catch (error) {
       console.error("Verification failed:", error);
       toast.error("Verification failed");

@@ -49,9 +49,7 @@ const IllustrationStyles = [
 const Playground = () => {
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedResults, setGeneratedResults] = useState<GeneratedImage[]>(
-    []
-  );
+  const [generatedResults, setGeneratedResults] = useState<GeneratedImage[]>([]);
   const [colorMode, setColorMode] = useState<"color" | "blackAndWhite">(
     "color"
   );
@@ -458,26 +456,22 @@ const Playground = () => {
                 </div>
               ) : (
                 <div
-                  className={`grid ${
-                    outputCount === 1 ? "grid-cols-1" : "grid-cols-2"
+                  className={`flex ${
+                    outputCount === 1 ? "justify-center" : "justify-between"
                   } gap-6 h-full min-h-0`}
                 >
                   {generatedResults.map((result, index) => (
-                    <div key={index} className="grid w-full place-items-center">
+                    <div key={index} className={`${outputCount === 1 ? 'w-full' : 'w-1/2'} flex flex-col items-center`}>
                       <div
-                        className="relative w-full h-full flex items-center justify-center rounded-2xl border-2 border-dashed border-gray-200"
-                        style={{ width: 500, height: 500, marginBottom: 20 }}
+                        className="relative flex items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 p-4 w-full"
                       >
                         {result.imageUrl ? (
                           <Image
                             src={result.imageUrl}
                             alt={`AI generated illustration from ${result.provider}`}
-                            width={440}
-                            height={440}
-                            className="object-contain rounded-2xl"
-                            style={{
-                              background: "white",
-                            }}
+                            width={300}
+                            height={533} // Adjust height to fit illustration (approx. phone aspect ratio)
+                            className="object-contain rounded-xl" // Ensure image scales and maintains rounded corners
                           />
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center">
@@ -487,12 +481,9 @@ const Playground = () => {
                           </div>
                         )}
                       </div>
-                      {/* <div className="rounded-full bg-white border border-gray-200 px-4 py-2 text-black text-center text-base font-medium max-w-full shadow-sm mb-2">
-                        {prompt || "Prompt not available"}
-                      </div> */}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm" className="mb-2">
+                          <Button variant="outline" size="sm" className="mt-4">
                             Download
                           </Button>
                         </DropdownMenuTrigger>
